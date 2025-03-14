@@ -1,27 +1,27 @@
 const express = require("express");
 const app = express();
 
-const postbacks = []; // Храним полученные постбеки в памяти (очистится при перезапуске сервера)
+const postbacks = [];
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Получение постбека
 app.post("/postback", (req, res) => {
-  const postbackData = req.body;
-  postbacks.push(postbackData); // Добавляем в массив
+  console.log("RAW POSTBACK DATA:", JSON.stringify(req.body, null, 2)); // Логируем полученные данные
 
-  console.log("Получен постбек:", postbackData);
+  if (!req.body.invoice_info || typeof req.body.invoice_info !== "object") {
+    console.warn("❌ Warning: invoice_info пришел некорректным!", req.body.invoice_info);
+  }
 
-  res.json({ message: "Postback received", data: postbackData });
+  postbacks.push(req.body);
+
+  res.json({ message: "Postback received", data: req.body });
 });
 
-// Отображение всех полученных постбеков в виде JSON
 app.get("/postbacks", (req, res) => {
   res.json(postbacks);
 });
 
-// Простая HTML-страница для отображения постбеков
 app.get("/", (req, res) => {
   res.send(`
     <html>
