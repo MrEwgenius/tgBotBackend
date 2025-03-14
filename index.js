@@ -1,27 +1,54 @@
 const express = require("express");
 const app = express();
 
-// Добавляем middleware для обработки JSON
-app.use(express.json());
+const postbacks = []; // Храним полученные постбеки в памяти (очистится при перезапуске сервера)
 
-// Добавляем middleware для обработки данных в формате x-www-form-urlencoded
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Получение постбека
 app.post("/postback", (req, res) => {
-  const { status, invoice_id, amount_crypto, currency, order_id, token } =
-    req.body;
+  const postbackData = req.body;
+  postbacks.push(postbackData); // Добавляем в массив
 
-  res.json({
-    message: "Postback received",
-    status: status,
-    invoice_id: invoice_id,
-    amount_crypto: amount_crypto,
-    currency: currency,
-    order_id: order_id,
-    token: token,
-  });
+  console.log("Получен постбек:", postbackData);
+
+  res.json({ message: "Postback received", data: postbackData });
+});
+
+// Отображение всех полученных постбеков в виде JSON
+app.get("/postbacks", (req, res) => {
+  res.json(postbacks);
+});
+
+// Простая HTML-страница для отображения постбеков
+app.get("/", (req, res) => {
+  res.send(`
+    <html>
+      <head>
+        <title>Postbacks</title>
+        <style>
+          body { font-family: Arial, sans-serif; }
+          pre { background: #f4f4f4; padding: 10px; }
+        </style>
+      </head>
+      <body>
+        <h1>Postback Log</h1>
+        <button onclick="loadPostbacks()">Обновить</button>
+        <pre id="log">Загрузка...</pre>
+        <script>
+          async function loadPostbacks() {
+            const res = await fetch('/postbacks');
+            const data = await res.json();
+            document.getElementById('log').textContent = JSON.stringify(data, null, 2);
+          }
+          loadPostbacks();
+        </script>
+      </body>
+    </html>
+  `);
 });
 
 app.listen(5000, () => {
-  console.log("Server is running on port 5000");
+  console.log("Сервер запущен на http://localhost:5000");
 });
