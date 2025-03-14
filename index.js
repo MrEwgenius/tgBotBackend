@@ -7,13 +7,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.post("/postback", (req, res) => {
-  console.log("RAW POSTBACK DATA:", JSON.stringify(req.body, null, 2)); // Логируем полученные данные
-
-  if (!req.body.invoice_info || typeof req.body.invoice_info !== "object") {
-    console.warn("❌ Warning: invoice_info пришел некорректным!", req.body.invoice_info);
-  }
-
   postbacks.push(req.body);
+  console.log(req.body);
 
   res.json({ message: "Postback received", data: req.body });
 });
